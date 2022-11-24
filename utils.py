@@ -1,6 +1,9 @@
 # ## 函数工具
+import os
 import re
 import pandas as pd
+import jieba
+import jieba.posseg as psg
 import cn2an
 import setting
 logger = setting.set_logger()
@@ -50,8 +53,54 @@ def get_number_from_string(content):
         content_num = pd.NA
     return content_num
 
+#分词工具
+def chinese_word_cut(my_text, min_length_of_word = 2, stop_word_path = None, extra_dictionary_path = None, flag_list = ['n','nz','vn']):
+    # 设置扩展字典
+    if os.path.exists(extra_dictionary_path):
+        jieba.load_userdict(extra_dictionary_path)
+        jieba.initialize()
+    else:
+        logger.info(f'扩充字典不存在{extra_dictionary_path}')
+    # 设置停用词字典
+    if os.path.exists(stop_word_path):
+        try:
+            stopwords_list_unprocessed = open(stop_word_path,encoding ='utf-8')
+            stop_word_list = []
+            for line in stopwords_list_unprocessed:
+                line = re.sub(u'\n|\\r', '', line)
+                stop_word_list.append(line)
+        except:
+            stop_word_list = []
+            logger.debug("error in stop_file")
+    else:
+        logger.info(f'停用词典不存在{stop_word_path}')
+
+    #jieba分词
+    word_list = []
+    seg_list = psg.cut(my_text)
+    for seg_word in seg_list:
+        # word = re.sub(u'[^\u4e00-\u9fa5]','',seg_word.word) # 去除英文
+        word = seg_word.word
+        is_unfit = False
+        for stop_word in stop_word_list:  # this word is stop word
+            if stop_word == word or len(word) <  min_length_of_word:     
+                    is_unfit = True
+                    break
+        if (not is_unfit) and seg_word.flag in flag_list:
+            word_list.append(word)      
+    return (" ").join(word_list)
+
+# 手动安全分词
+def safe_cut_words(words_str, seg=' '):
+    if not seg:
+        return
+    words_str = re.sub(f'[{seg}]+','|', words_str).strip('|')
+    if not words_str:
+        return 
+    return words_str.split('|')
+
 # pandas 一列生成多列
-def apply_and_concat(df, field, func, args, column_names):
+def apply_and_concat_data_frame(df, field, func, args, column_names):
     return pd.concat((
         df,
         df[field].apply(
@@ -76,6 +125,13 @@ def clean_number_of_data_frame(df, column_names, inplace=False):
     else:
         return helper(df, column_names, inplace=inplace)
 
+# pandas 分词函数
+def get_segmentation_words_from_data_frame(data, content_column_name, new_column_name, inplace=False, min_length_of_word = setting.MinLengthOfWord, stop_word_path = setting.StopWordPath, extra_dictionary_path = setting.ExtraDictionaryPath, flag_list = setting.AllowPOSList):
+    min_length_of_word = int(min_length_of_word)
+    if inplace:
+        data[new_column_name] = data[content_column_name].apply(chinese_word_cut, args=(min_length_of_word, stop_word_path, extra_dictionary_path, flag_list))
+    else:
+        return data[content_column_name].apply(chinese_word_cut, args=(min_length_of_word, stop_word_path, extra_dictionary_path, flag_list))
 
 if __name__ == "__main__":
     try:
