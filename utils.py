@@ -94,17 +94,49 @@ def chinese_word_cut(my_text, min_length_of_word = 2, stop_word_path = None, ext
 def safe_cut_words(words_str, seg=' '):
     if not seg:
         return
+    if not isinstance(words_str, str):
+        logger.error(f'手动安全分词输入值不是str，而是{words_str}')
+        words_str = str(words_str)
     words_str = re.sub(f'[{seg}]+','|', words_str).strip('|')
     if not words_str:
         return 
     return words_str.split('|')
 
+# 列表重合检测
+def list_detection(list1, list2) -> bool:
+    return frozenset(list1).intersection(list2)
+
+# 词典检测  返回是否属于其分类，并返回重合词
+def dictionary_detection(words_str, dic_df, dictionary_column_name, seg = ' '):
+    word_list = safe_cut_words(words_str, seg)
+    if not word_list:
+        return 0, ''
+    
+    keywords_list = dic_df[dic_df[dictionary_column_name].notna()][dictionary_column_name].to_list()
+    
+    coincident_keyword_set = list_detection(word_list, keywords_list)
+    
+    if len(coincident_keyword_set) > 0:
+        return 1, ' '.join(coincident_keyword_set)
+    
+    return 0, ''
+
+# pandas 获取分类（一整列数据的全部分类及选中词）
+def get_classification(data_df, data_words_column_name, dic_df, inplace=False):
+    res_df = pd.DataFrame()
+    for class_name in dic_df.columns: 
+        res_df = pd.concat((res_df, apply_and_concat_data_frame(data_df, data_words_column_name, dictionary_detection, args=(dic_df, class_name), column_names=[class_name, class_name+'选中词'])), axis=1)
+    if inplace:
+        return pd.concat((data_df, res_df), axis=1)
+    return res_df
+
 # pandas 一列生成多列
-def apply_and_concat_data_frame(df, field, func, args, column_names):
-    return pd.concat((
-        df,
-        df[field].apply(
+def apply_and_concat_data_frame(df, field, func, args, column_names, inplace=False):
+    if inplace:
+        return pd.concat((df, df[field].apply(
             lambda cell: pd.Series(func(cell, *args), index=column_names))), axis=1)
+    else:
+        return df[field].apply(lambda cell: pd.Series(func(cell, *args), index=column_names))
 
 # pandas 清洗一列数字并修改格式
 def clean_number_of_data_frame(df, column_names, inplace=False):

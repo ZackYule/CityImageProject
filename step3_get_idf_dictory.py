@@ -8,6 +8,7 @@ OutIDFFilePath = 'setting/idf_list.txt'
 
 if __name__ == "__main__":
     data = pd.read_pickle(DataFilePath)
+    
     # 选取词集
     corpus = data['分词'].to_list()
     # 统计idf
@@ -18,4 +19,6 @@ if __name__ == "__main__":
     idf_df_data = {'word':keywords}
     # idf_df_data = {'word':keywords,'idf':tfidf_vector.idf_}
     idf_df = pd.DataFrame(idf_df_data)
+
+    # 数据保存
     idf_df.to_csv(OutIDFFilePath, header=None, index=None, sep=' ', mode='a')
