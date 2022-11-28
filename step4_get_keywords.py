@@ -14,5 +14,5 @@ if __name__ == "__main__":
     data = pd.read_pickle(DataFilePath)
     analyse.set_idf_path(setting.IDFFilePath)
     analyse.set_stop_words(setting.StopWordPath)
-    data['关键词'] = data['内容'].apply(get_key_word_from_a_doc, args=(setting.KeywordTopNumber,))
+    data['关键词'] = data['内容'].apply(get_key_word_from_a_doc, args=(setting.KeywordTopNumber, setting.AllowPOSList))
     data.to_pickle(get_new_path(DataFilePath, '关键词'))

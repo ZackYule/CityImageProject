@@ -8,7 +8,7 @@ if __name__ == "__main__":
     # 数据读取
     dictionary_comparison_table = pd.read_pickle(DictionaryFilePath)
     data = pd.read_pickle(DataFilePath)
-  
+
     # 数据处理
     data = get_classification(data, '关键词', dictionary_comparison_table, inplace=True)
 

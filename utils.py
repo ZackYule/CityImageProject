@@ -49,7 +49,7 @@ def get_number_from_string(content):
     try:
         content_num = cn2an.cn2an(content, 'smart')
     except Exception as err:
-        logger.debug(f'🤡ERROR!!--->{err=}, {type(err)=}')
+        logger.debug(f'🤡识别中文数字时ERROR!!--->{err=}, {type(err)=}, content:{content}')
         content_num = pd.NA
     return content_num
 
