@@ -4,6 +4,7 @@ data1200
 data_old
 settings
 .DS_Store
+res/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

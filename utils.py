@@ -262,13 +262,26 @@ def time_cut(df, time_column_name, freq_count=1, freq_tag='M'):
     return df
 
 
-# pandas 获取平台总数统计
-def get_app_time_counts(df_data, group_name, app_name=None):
-    if not app_name:
-        return df_data.groupby(group_name).agg('count').iloc[:,
-                                                             0].astype('Int64')
-    return df_data[df_data['平台'] == app_name].groupby(group_name).agg(
+# pandas 获取分组统计数（不同app下）
+def get_app_group_counts(df_data, group_name, app_name=None, column_name = None, is_fill_zero = False):
+    if app_name:
+        res_series = df_data[df_data['平台'] == app_name].groupby(group_name).agg(
         'count').iloc[:, 0].astype('Int64')
+    else:
+        res_series = df_data.groupby(group_name).agg('count').iloc[:,
+                                                             0].astype('Int64')
+    if column_name:
+        res_series.name = column_name
+    if is_fill_zero:
+        res_series = res_series.fillna('0')
+    return res_series
+
+
+# pandas 获取平台点赞数分组统计（或其他任意数字）
+def get_app_sum_counts(df_data, group_name, sum_target_volume_name = '点赞数', app_name = None):
+    if not app_name:
+        return df_data.loc[:,[sum_target_volume_name, group_name]].groupby(group_name).agg('sum', numeric_only=False).astype('Int64')
+    return df_data[df_data['平台']==app_name].loc[:,[sum_target_volume_name, group_name]].groupby(group_name).agg('sum', numeric_only=False).astype('Int64')
 
 
 # pandas 获取总数，直接保存至原表中
