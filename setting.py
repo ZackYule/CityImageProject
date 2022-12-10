@@ -1,7 +1,7 @@
 import sys
 from loguru import logger
 
-LOGGER_LEVEL = "DEBUG"
+LOGGER_LEVEL = "INFO"
 MinLengthOfWord = 2        # 分词的最小字数
 KeywordTopNumber = 10       # 最大关键字字数
 StopWordPath = 'setting/stopwords.txt'

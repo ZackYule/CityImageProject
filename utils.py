@@ -43,7 +43,7 @@ def remove_chinese_characters(content):
 # 时间选取
 def search_time_string(content):
     match = re.search(
-        '\d{4}-\d{1,2}-\d{1,2}\s*\d{0,2}(:\d{1,2})?(:\d{1,2})?(.\d{1,9})?',
+        '\d{4}-\d{1,2}-\d{1,2}\s*\d{0,2}(:\d{1,2})?(:\d{1,2})?(\.\d{1,9})?',
         content)
     if match:
         return pd.Timestamp(match.group())
@@ -140,6 +140,7 @@ def dictionary_detection(words_str, dic_df, dictionary_column_name, seg=' '):
     keywords_list = dic_df[dic_df[dictionary_column_name].notna(
     )][dictionary_column_name].to_list()
 
+    logger.debug(word_list)
     coincident_keyword_set = list_detection(word_list, keywords_list)
 
     if len(coincident_keyword_set) > 0:
@@ -147,6 +148,23 @@ def dictionary_detection(words_str, dic_df, dictionary_column_name, seg=' '):
 
     return 0, ''
 
+# 类别检测  返回是否属于其分类，并返回重合词
+def class_detection(words_str, dic_df, seg=' '):
+    for class_name in dic_df.columns:
+        is_class, target_word = dictionary_detection(words_str, dic_df, class_name, seg=' ')
+        if is_class:
+            return class_name
+    return ''
+
+# 有效关键词检测
+def choose_first_keyword_in_dictionary(words_str, dictionary_comparison_table, seg=' '):
+    word_list = safe_cut_words(words_str, seg)
+    if not word_list:
+        return ''
+    for word in word_list:
+        if word in dictionary_comparison_table.values:
+            return word
+    return ''
 
 # pandas 获取分类（一整列数据的全部分类及选中词）
 def get_classification(data_df, data_words_column_name, dic_df, inplace=False):
@@ -161,6 +179,16 @@ def get_classification(data_df, data_words_column_name, dic_df, inplace=False):
                  args=(dic_df, class_name),
                  column_names=[class_name, class_name + '选中词'])),
             axis=1)
+    if inplace:
+        return pd.concat((data_df, res_df), axis=1)
+    return res_df
+
+# pandas 单标签分类（一整列数据的全部分类及选中词）
+def get_single_classification(data_df, data_words_column_name, dic_df, inplace=False):
+    res_df = pd.DataFrame()
+    res_df.name = data_words_column_name + '分类'
+    res_df = data_df[data_words_column_name].apply(class_detection,args=(dic_df,))
+
     if inplace:
         return pd.concat((data_df, res_df), axis=1)
     return res_df
@@ -310,8 +338,10 @@ if __name__ == "__main__":
     except:
         print('error')
     print(search_time_string('2022-1-18  12 23'))
+    DataFilePath = 'data/西安城市形象数据_关键词_关键词选取.pkl'
+    DictionaryFilePath = 'data/西安城市形象编码词表.pkl'
+    data = pd.read_pickle(DataFilePath).sample(10).reset_index(drop=True)
+    dictionary_comparison_table = pd.read_pickle(DictionaryFilePath)
+    print(get_single_classification(data, '议题关键词', dictionary_comparison_table, inplace=False))
 
-    DataFilePath = 'data/西安城市形象数据_关键词_议题分类.pkl'
-    data = pd.read_pickle(DataFilePath)
-    # 按时间段划分
-    data = time_cut(data, '发布时间', 1, 'MS')
+    
