@@ -148,16 +148,23 @@ def dictionary_detection(words_str, dic_df, dictionary_column_name, seg=' '):
 
     return 0, ''
 
+
 # 类别检测  返回是否属于其分类，并返回重合词
 def class_detection(words_str, dic_df, seg=' '):
     for class_name in dic_df.columns:
-        is_class, target_word = dictionary_detection(words_str, dic_df, class_name, seg=' ')
+        is_class, target_word = dictionary_detection(words_str,
+                                                     dic_df,
+                                                     class_name,
+                                                     seg=' ')
         if is_class:
             return class_name
     return ''
 
+
 # 有效关键词检测
-def choose_first_keyword_in_dictionary(words_str, dictionary_comparison_table, seg=' '):
+def choose_first_keyword_in_dictionary(words_str,
+                                       dictionary_comparison_table,
+                                       seg=' '):
     word_list = safe_cut_words(words_str, seg)
     if not word_list:
         return ''
@@ -165,6 +172,7 @@ def choose_first_keyword_in_dictionary(words_str, dictionary_comparison_table, s
         if word in dictionary_comparison_table.values:
             return word
     return ''
+
 
 # pandas 获取分类（一整列数据的全部分类及选中词）
 def get_classification(data_df, data_words_column_name, dic_df, inplace=False):
@@ -183,11 +191,16 @@ def get_classification(data_df, data_words_column_name, dic_df, inplace=False):
         return pd.concat((data_df, res_df), axis=1)
     return res_df
 
+
 # pandas 单标签分类（一整列数据的全部分类及选中词）
-def get_single_classification(data_df, data_words_column_name, dic_df, inplace=False):
+def get_single_classification(data_df,
+                              data_words_column_name,
+                              dic_df,
+                              inplace=False):
     res_df = pd.DataFrame()
-    res_df.name = data_words_column_name + '分类'
-    res_df = data_df[data_words_column_name].apply(class_detection,args=(dic_df,))
+    res_df[data_words_column_name +
+           '分类'] = data_df[data_words_column_name].apply(class_detection,
+                                                         args=(dic_df, ))
 
     if inplace:
         return pd.concat((data_df, res_df), axis=1)
@@ -291,13 +304,17 @@ def time_cut(df, time_column_name, freq_count=1, freq_tag='M'):
 
 
 # pandas 获取分组统计数（不同app下）
-def get_app_group_counts(df_data, group_name, app_name=None, column_name = None, is_fill_zero = False):
+def get_app_group_counts(df_data,
+                         group_name,
+                         app_name=None,
+                         column_name=None,
+                         is_fill_zero=False):
     if app_name:
-        res_series = df_data[df_data['平台'] == app_name].groupby(group_name).agg(
-        'count').iloc[:, 0].astype('Int64')
+        res_series = df_data[df_data['平台'] == app_name].groupby(
+            group_name).agg('count').iloc[:, 0].astype('Int64')
     else:
-        res_series = df_data.groupby(group_name).agg('count').iloc[:,
-                                                             0].astype('Int64')
+        res_series = df_data.groupby(group_name).agg(
+            'count').iloc[:, 0].astype('Int64')
     if column_name:
         res_series.name = column_name
     if is_fill_zero:
@@ -306,10 +323,19 @@ def get_app_group_counts(df_data, group_name, app_name=None, column_name = None,
 
 
 # pandas 获取平台点赞数分组统计（或其他任意数字）
-def get_app_sum_counts(df_data, group_name, sum_target_volume_name = '点赞数', app_name = None):
+def get_app_sum_counts(df_data,
+                       group_name,
+                       sum_target_volume_name='点赞数',
+                       app_name=None):
     if not app_name:
-        return df_data.loc[:,[sum_target_volume_name, group_name]].groupby(group_name).agg('sum', numeric_only=False).astype('Int64')
-    return df_data[df_data['平台']==app_name].loc[:,[sum_target_volume_name, group_name]].groupby(group_name).agg('sum', numeric_only=False).astype('Int64')
+        return df_data.loc[:, [sum_target_volume_name, group_name]].groupby(
+            group_name).agg('sum', numeric_only=False).astype('Int64')
+    return df_data[df_data['平台'] ==
+                   app_name].loc[:,
+                                 [sum_target_volume_name, group_name]].groupby(
+                                     group_name).agg(
+                                         'sum',
+                                         numeric_only=False).astype('Int64')
 
 
 # pandas 获取总数，直接保存至原表中
@@ -342,6 +368,8 @@ if __name__ == "__main__":
     DictionaryFilePath = 'data/西安城市形象编码词表.pkl'
     data = pd.read_pickle(DataFilePath).sample(10).reset_index(drop=True)
     dictionary_comparison_table = pd.read_pickle(DictionaryFilePath)
-    print(get_single_classification(data, '议题关键词', dictionary_comparison_table, inplace=False))
-
-    
+    print(
+        get_single_classification(data,
+                                  '议题关键词',
+                                  dictionary_comparison_table,
+                                  inplace=False))
