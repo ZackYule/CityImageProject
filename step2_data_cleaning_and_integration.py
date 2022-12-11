@@ -46,11 +46,13 @@ if __name__ == "__main__":
     data[['内容']] = data[['内容']].applymap(rich_text_to_normal)
     data[['发布时间']] = data[['发布时间']].applymap(search_time_string)
     data['发布时间月份'] = data['发布时间'].dt.strftime('%Y-%m')
+    data['发布时间日期'] = data['发布时间'].dt.strftime('%Y-%m-%d')
     clean_number_of_data_frame(data, ['点赞数', '收藏数', '转发数', '评论数'], True)
     data.reset_index(drop=True, inplace=True)
 
     # 时间区间选取
-    data_time_cut = data[(data['发布时间月份']>'2017-07') & (data['发布时间月份']<='2022-07')]
+    data_time_cut = data[(data['发布时间月份'] > '2017-07')
+                         & (data['发布时间月份'] <= '2022-07')]
     logger.info(f'丢弃不在规定时间区间的数据共{data.shape[0] - data_time_cut.shape[0]}条')
 
     # 保存数据
