@@ -10,6 +10,14 @@ if __name__ == "__main__":
     weibo = weibo[['user_tag', '内容', '转发数', '评论数', '点赞数', '发布时间']]
     weibo['平台'] = '微博'
 
+    # 剔除掉补爬日期的内容
+    # weibo[['发布时间']] = weibo[['发布时间']].applymap(search_time_string)
+    # weibo['发布时间月份'] = weibo['发布时间'].dt.strftime('%Y-%m')
+    # weibo = weibo[(weibo['发布时间月份'] < '2021-07') |
+    #               (weibo['发布时间月份'] > '2021-12')]
+    # weibo = weibo[weibo['发布时间月份'] < '2022-06']
+
+    # 微博补爬了2021-08至2021-12的内容
     weibo_add = pd.read_csv("data/西安微博补充.csv")
     weibo_add.rename(columns={
         '微博正文': '内容',
